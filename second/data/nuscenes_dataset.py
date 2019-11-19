@@ -82,9 +82,9 @@ class NuScenesDataset(Dataset):
     def ground_truth_annotations(self):
         if "gt_boxes" not in self._nusc_infos[0]:
             return None
-        from nuscenes.eval.detection.config import eval_detection_configs
-        cls_range_map = eval_detection_configs[self.
-                                               eval_version]["class_range"]
+        from nuscenes.eval.detection.config import config_factory
+        cls_range_map = config_factory(self.eval_version).class_range
+
         gt_annos = []
         for info in self._nusc_infos:
             gt_names = info["gt_names"]
@@ -552,9 +552,9 @@ def _lidar_nusc_box_to_global(info, boxes, classes, eval_version="cvpr_2019"):
         # Move box to ego vehicle coord system
         box.rotate(pyquaternion.Quaternion(info['lidar2ego_rotation']))
         box.translate(np.array(info['lidar2ego_translation']))
-        from nuscenes.eval.detection.config import eval_detection_configs
+        from nuscenes.eval.detection.config import config_factory
         # filter det in ego.
-        cls_range_map = eval_detection_configs[eval_version]["class_range"]
+        cls_range_map = config_factory(eval_version).class_range
         radius = np.linalg.norm(box.center[:2], 2)
         det_range = cls_range_map[classes[box.label]]
         if radius > det_range:
@@ -784,8 +784,8 @@ def get_box_mean(info_path, class_name="vehicle.car",
                  eval_version="cvpr_2019"):
     with open(info_path, 'rb') as f:
         nusc_infos = pickle.load(f)["infos"]
-    from nuscenes.eval.detection.config import eval_detection_configs
-    cls_range_map = eval_detection_configs[eval_version]["class_range"]
+    from nuscenes.eval.detection.config import config_factory
+    cls_range_map = config_factory(eval_version).class_range
 
     gt_boxes_list = []
     gt_vels_list = []
@@ -867,8 +867,8 @@ def render_nusc_result(nusc, results, sample_token):
 def cluster_trailer_box(info_path, class_name="bus"):
     with open(info_path, 'rb') as f:
         nusc_infos = pickle.load(f)["infos"]
-    from nuscenes.eval.detection.config import eval_detection_configs
-    cls_range_map = eval_detection_configs["cvpr_2019"]["class_range"]
+    from nuscenes.eval.detection.config import config_factory
+    cls_range_map = config_factory("cvpr_2019").class_range
     gt_boxes_list = []
     for info in nusc_infos:
         gt_boxes = info["gt_boxes"]
