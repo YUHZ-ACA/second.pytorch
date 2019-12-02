@@ -22,33 +22,55 @@ from second.utils.timer import simple_timer
 @register_dataset
 class NuScenesDataset(Dataset):
     NumPointFeatures = 4  # xyz, timestamp. set 4 to use kitti pretrain
+   #  NameMapping = {
+   #      'movable_object.barrier': 'barrier',
+   #      'vehicle.bicycle': 'bicycle',
+   #      'vehicle.bus.bendy': 'bus',
+   #      'vehicle.bus.rigid': 'bus',
+   #      'vehicle.car': 'car',
+   #      'vehicle.construction': 'construction_vehicle',
+   #      'vehicle.motorcycle': 'motorcycle',
+   #      'human.pedestrian.adult': 'pedestrian',
+   #      'human.pedestrian.child': 'pedestrian',
+   #      'human.pedestrian.construction_worker': 'pedestrian',
+   #      'human.pedestrian.police_officer': 'pedestrian',
+   #      'movable_object.trafficcone': 'traffic_cone',
+   #      'vehicle.trailer': 'trailer',
+   #      'vehicle.truck': 'truck'
+   #  }
+   #  DefaultAttribute = {
+   #      "car": "vehicle.parked",
+   #      "pedestrian": "pedestrian.moving",
+   #      "trailer": "vehicle.parked",
+   #      "truck": "vehicle.parked",
+   #      "bus": "vehicle.parked",
+   #      "motorcycle": "cycle.without_rider",
+   #      "construction_vehicle": "vehicle.parked",
+   #      "bicycle": "cycle.without_rider",
+   #      "barrier": "",
+   #      "traffic_cone": "",
+   #  }
+
     NameMapping = {
-        'movable_object.barrier': 'barrier',
-        'vehicle.bicycle': 'bicycle',
-        'vehicle.bus.bendy': 'bus',
-        'vehicle.bus.rigid': 'bus',
-        'vehicle.car': 'car',
-        'vehicle.construction': 'construction_vehicle',
-        'vehicle.motorcycle': 'motorcycle',
-        'human.pedestrian.adult': 'pedestrian',
-        'human.pedestrian.child': 'pedestrian',
-        'human.pedestrian.construction_worker': 'pedestrian',
-        'human.pedestrian.police_officer': 'pedestrian',
-        'movable_object.trafficcone': 'traffic_cone',
-        'vehicle.trailer': 'trailer',
-        'vehicle.truck': 'truck'
+        'other_vehicle': 'other_vehicle',
+        'car': 'car',
+        'bus': 'bus',
+        'pedestrian': 'pedestrian',
+        'truck': 'truck',
+        'bicycle': 'bicycle',
+        'motorcycle': 'motorcycle',
+        'animal': 'animal' 
     }
+
     DefaultAttribute = {
-        "car": "vehicle.parked",
-        "pedestrian": "pedestrian.moving",
-        "trailer": "vehicle.parked",
-        "truck": "vehicle.parked",
-        "bus": "vehicle.parked",
-        "motorcycle": "cycle.without_rider",
-        "construction_vehicle": "vehicle.parked",
-        "bicycle": "cycle.without_rider",
-        "barrier": "",
-        "traffic_cone": "",
+        'other_vehicle': 'other_vehicle',
+        'car': 'car',
+        'bus': 'bus',
+        'pedestrian': 'pedestrian',
+        'truck': 'truck',
+        'bicycle': 'bicycle',
+        'motorcycle': 'motorcycle',
+        'animal': 'animal' 
     }
 
     def __init__(self,
@@ -90,7 +112,8 @@ class NuScenesDataset(Dataset):
             gt_names = info["gt_names"]
             gt_boxes = info["gt_boxes"]
             num_lidar_pts = info["num_lidar_pts"]
-            mask = num_lidar_pts > 0
+            # mask = num_lidar_pts > 0, for Lyft
+            mask = num_lidar_pts == -1
             gt_names = gt_names[mask]
             gt_boxes = gt_boxes[mask]
             num_lidar_pts = num_lidar_pts[mask]
@@ -197,7 +220,9 @@ class NuScenesDataset(Dataset):
             }
         res["lidar"]["points"] = points
         if 'gt_boxes' in info:
-            mask = info["num_lidar_pts"] > 0
+            # mask = info["num_lidar_pts"] > 0
+            # Lyft dataset doens't provide this. al num_lidar_pts has been set to -1
+            mask = info["num_lidar_pts"] == -1
             gt_boxes = info["gt_boxes"][mask]
             if self._with_velocity:
                 gt_velocity = info["gt_velocity"][mask]
@@ -709,7 +734,7 @@ def _fill_trainval_infos(nusc,
                 [a["num_radar_pts"] for a in annotations])
         if sample["scene_token"] in train_scenes:
             train_nusc_infos.append(info)
-        else:
+        elif sample["scene_token"] in val_scenes:
             val_nusc_infos.append(info)
     return train_nusc_infos, val_nusc_infos
 

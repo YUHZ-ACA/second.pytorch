@@ -379,39 +379,40 @@ def train(config_path,
                 if global_step % steps_per_eval == 0:
                     torchplus.train.save_models(model_dir, [net, amp_optimizer],
                                                 net.get_global_step())
-                    net.eval()
-                    result_path_step = result_path / f"step_{net.get_global_step()}"
-                    result_path_step.mkdir(parents=True, exist_ok=True)
-                    model_logging.log_text("#################################",
-                                        global_step)
-                    model_logging.log_text("# EVAL", global_step)
-                    model_logging.log_text("#################################",
-                                        global_step)
-                    model_logging.log_text("Generate output labels...", global_step)
-                    t = time.time()
-                    detections = []
-                    prog_bar = ProgressBar()
-                    net.clear_timer()
-                    prog_bar.start((len(eval_dataset) + eval_input_cfg.batch_size - 1)
-                                // eval_input_cfg.batch_size)
-                    for example in iter(eval_dataloader):
-                        example = example_convert_to_torch(example, float_dtype)
-                        detections += net(example)
-                        prog_bar.print_bar()
+                    print(f'Saving Models at Step {global_step}')
+                    # net.eval()
+                    # result_path_step = result_path / f"step_{net.get_global_step()}"
+                    # result_path_step.mkdir(parents=True, exist_ok=True)
+                    # model_logging.log_text("#################################",
+                    #                     global_step)
+                    # model_logging.log_text("# EVAL", global_step)
+                    # model_logging.log_text("#################################",
+                    #                     global_step)
+                    # model_logging.log_text("Generate output labels...", global_step)
+                    # t = time.time()
+                    # detections = []
+                    # prog_bar = ProgressBar()
+                    # net.clear_timer()
+                    # prog_bar.start((len(eval_dataset) + eval_input_cfg.batch_size - 1)
+                    #             // eval_input_cfg.batch_size)
+                    # for example in iter(eval_dataloader):
+                    #     example = example_convert_to_torch(example, float_dtype)
+                    #     detections += net(example)
+                    #     prog_bar.print_bar()
 
-                    sec_per_ex = len(eval_dataset) / (time.time() - t)
-                    model_logging.log_text(
-                        f'generate label finished({sec_per_ex:.2f}/s). start eval:',
-                        global_step)
-                    result_dict = eval_dataset.dataset.evaluation(
-                        detections, str(result_path_step))
-                    for k, v in result_dict["results"].items():
-                        model_logging.log_text("Evaluation {}".format(k), global_step)
-                        model_logging.log_text(v, global_step)
-                    model_logging.log_metrics(result_dict["detail"], global_step)
-                    with open(result_path_step / "result.pkl", 'wb') as f:
-                        pickle.dump(detections, f)
-                    net.train()
+                    # sec_per_ex = len(eval_dataset) / (time.time() - t)
+                    # model_logging.log_text(
+                    #     f'generate label finished({sec_per_ex:.2f}/s). start eval:',
+                    #     global_step)
+                    # result_dict = eval_dataset.dataset.evaluation(
+                    #     detections, str(result_path_step))
+                    # for k, v in result_dict["results"].items():
+                    #     model_logging.log_text("Evaluation {}".format(k), global_step)
+                    #     model_logging.log_text(v, global_step)
+                    # model_logging.log_metrics(result_dict["detail"], global_step)
+                    # with open(result_path_step / "result.pkl", 'wb') as f:
+                    #     pickle.dump(detections, f)
+                    # net.train()
                 step += 1
                 if step >= total_step:
                     break
